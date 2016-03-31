@@ -4640,7 +4640,7 @@
 
 (defmacro assert
   "Evaluates expr and throws an exception if it does not evaluate to
-  logical tru"
+  logical true."
   {:added "1.0"}
   ([x]
    (when *assert*
