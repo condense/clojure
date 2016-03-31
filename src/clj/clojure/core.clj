@@ -4631,18 +4631,29 @@
   (when (instance? IExceptionInfo ex)
     (.getData ^IExceptionInfo ex)))
 
+(declare tree-seq)
+
+(defn pr-vars [form env]
+  (let [var? (fn [x] (-> x meta :var))]
+    (for [var (filter var? (tree-seq seq? identity form))]
+      `(str "\n where " '~var " is " (pr-str ~var)))))
+
 (defmacro assert
   "Evaluates expr and throws an exception if it does not evaluate to
-  logical true."
+  logical tru"
   {:added "1.0"}
   ([x]
-     (when *assert*
-       `(when-not ~x
-          (throw (new AssertionError (str "Assert failed: " (pr-str '~x)))))))
+   (when *assert*
+     `(when-not ~x
+        (throw (new AssertionError (str "Assert failed: " ~(or (-> x meta :msg) "")
+                                        "\n" (pr-str '~x)
+                                        ~@(pr-vars x &env)))))))
   ([x message]
      (when *assert*
        `(when-not ~x
-          (throw (new AssertionError (str "Assert failed: " ~message "\n" (pr-str '~x))))))))
+          (throw (new AssertionError (str "Assert failed: " ~message
+                                          "\n" (pr-str '~x)
+                                          ~@(pr-vars x &env))))))))
 
 (defn test
   "test [v] finds fn at key :test in var metadata and calls it,
